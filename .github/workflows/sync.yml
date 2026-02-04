@@ -31,7 +31,22 @@ jobs:
 
           # Set test_mode true to run tests instead of the true action!!
           test_mode: false
+      # ... (上面是你之前的 Modify files 步骤) ...
 
+      # =========================================================
+      # ✨ 新增步骤：主动通知 Cloudflare 立即部署
+      # =========================================================
+      - name: Trigger Cloudflare Build
+        # 只有当确实有更新，或者我们修改了文件时，才触发
+        if: steps.sync.outputs.has_new_commits == 'true' || github.event_name == 'workflow_dispatch'
+        run: |
+          echo "正在通知 Cloudflare 进行构建..."
+          
+          # 使用 curl 发送 POST 请求给你的 Hook URL
+          # 这里的 secrets.CF_DEPLOY_HOOK 就是你在 GitHub 设置里填的那个链接
+          curl -X POST "${{ secrets.CF_DEPLOY_HOOK }}"
+          
+          echo "通知发送成功！Cloudflare 应该已经开始构建了。"
       - name: Sync check
         if: failure()
         run: |
